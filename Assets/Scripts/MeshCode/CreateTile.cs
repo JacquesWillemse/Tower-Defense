@@ -53,23 +53,9 @@ public class CreateTile : MonoBehaviour
         mesh.tangents = tangents;
         mesh.colors = colors;
 
-        Debug.Log("Vertices: " + vertices?.Length);
-        Debug.Log("Triangles: " + triangles?.Length);
-        Debug.Log("Normals: " + normals?.Length);
-        Debug.Log("UVs: " + uv?.Length);
-        Debug.Log("Tangents: " + tangents?.Length);
-        Debug.Log("Colors: " + colors?.Length);
-
         meshFilter.mesh = mesh;
         renderer.material.mainTexture = mainTexture;
         mesh.RecalculateBounds();
-
-        //Debug.Log(vertices);
-        //Debug.Log(triangles);
-        //Debug.Log(normals);
-        //Debug.Log(uv);
-        //Debug.Log(tangents);
-        //Debug.Log(colors);
 
         //string jsonString = JsonUtility.ToJson(data, true);
         //string filePath = Path.Combine(Application.persistentDataPath, "MeshData.json");

@@ -50,11 +50,11 @@ public class CallFromJSON : MonoBehaviour
             colors = data.colors;
             mainTexture = data.mainTexture;
 
-            Debug.Log("Mesh data loaded from: " + filePath);
+            //Debug.Log("Mesh data loaded from: " + filePath);
         }
         else
         {
-            Debug.Log("JSON file not found: " + filePath);
+            //Debug.Log("JSON file not found: " + filePath);
         }
     }
 }

@@ -25,6 +25,7 @@ public class CollapseTest : MonoBehaviour
 
     //this list gets filled with all the possible tiles a cell can be as well as their rotated varients where relevent 
     public List<TileType> allPossibleTiles = new List<TileType>();
+    public List<TileType> POITiles = new List<TileType>();
 
     //determines the size of the grid, it will be a square of whatever value is selected
     public int gridSize;
@@ -58,7 +59,6 @@ public class CollapseTest : MonoBehaviour
         //gives its initial rotation, what parent group it belongs to, the unique tile name, and then assigns the Tile Id's to every side to use in future
         terrainTile = PopulateTile(rotationNorth, TileParentGroup.Terrain, TileUnique.terrain, TERRAIN_EDGE, TERRAIN_EDGE, TERRAIN_EDGE, TERRAIN_EDGE);
         IntersectionRoad = PopulateTile(rotationNorth, TileParentGroup.Road, TileUnique.roadIntersection, ROAD_EDGE, TERRAIN_EDGE, ROAD_EDGE, ROAD_EDGE);
-        Tower = PopulateTile(rotationNorth, TileParentGroup.Road, TileUnique.tower, ROAD_EDGE, ROAD_EDGE, ROAD_EDGE, ROAD_EDGE);
 
         for (int i = 0; i < 4; i++)
         {
@@ -77,7 +77,7 @@ public class CollapseTest : MonoBehaviour
                     Tower = PopulateTile(rotationNorth, TileParentGroup.Tower, TileUnique.tower, ROAD_EDGE, TERRAIN_EDGE, ROAD_EDGE, ROAD_EDGE);
                     OldTower = Tower;
 
-                    Crater = PopulateTile(rotationNorth, TileParentGroup.Road, TileUnique.crater, TERRAIN_EDGE, ROAD_EDGE, TERRAIN_EDGE, TERRAIN_EDGE);
+                    Crater = PopulateTile(rotationNorth, TileParentGroup.Crater, TileUnique.crater, TERRAIN_EDGE, ROAD_EDGE, TERRAIN_EDGE, TERRAIN_EDGE);
                     OldCrater = Crater;
                     break;
                 case 1:
@@ -107,8 +107,8 @@ public class CollapseTest : MonoBehaviour
                 allPossibleTiles.Add(verticalRoad);
             }
             allPossibleTiles.Add(CornerRoad);
-            allPossibleTiles.Add(Crater);
-            allPossibleTiles.Add(Tower);
+            POITiles.Add(Crater);
+            POITiles.Add(Tower);
         }
         //adds the tile to the list of possible tiles
         allPossibleTiles.Add(terrainTile);
@@ -128,49 +128,6 @@ public class CollapseTest : MonoBehaviour
                 grid[x, y].possibleTiles = new List<TileType>(allPossibleTiles);
             }
         }
-
-        //PlacePOIs();
-
-
-
-
-
-        //gridThird = gridSize / 3;
-        //int initTowerX = UnityEngine.Random.Range(gridThird, gridSize - gridThird);
-        //int initTowerY = UnityEngine.Random.Range(gridThird, gridSize - gridThird);
-        //grid[initTowerX,initTowerY].possibleTiles.Clear();
-
-        //Tower = PopulateTile(rotationNorth, TileParentGroup.Tower, TileUnique.tower, TERRAIN_EDGE, ROAD_EDGE, TERRAIN_EDGE, ROAD_EDGE);
-        //OldTower = Tower;
-
-        //switch (UnityEngine.Random.Range(1, 5))
-        //{
-        //    case 1:
-        //        Tower = ReCalculateRotation(OldCornerRoad, rotationSouth);
-        //        break;
-        //    case 2:
-        //        Tower = ReCalculateRotation(OldCrater, rotationEast);
-        //        break;
-        //    case 3:
-        //        Tower = ReCalculateRotation(OldCrater, rotationNorth);
-        //        break;
-        //    case 4:
-        //        Tower = ReCalculateRotation(OldCrater, rotationNorth);
-        //        break;
-        //    default:
-        //        break;
-        //}
-        //grid[initTowerX,initTowerY].possibleTiles.Add(Tower);
-
-
-
-
-
-
-
-
-
-
 
         while (!generationComplete && !contradictionFound)
         {
@@ -510,4 +467,46 @@ public class CollapseTest : MonoBehaviour
         grid[POECoordinates[0], POECoordinates[1]].possibleTiles.Add(Tower);
         grid[POECoordinates[0], POECoordinates[1]].collapsed = true;
     }
+
+    public int[,] CalculateRegionBoundries( int row, int column)
+    {
+        int regionMinX = 1;
+        int regionMaxX = 1;
+        int regionMinY = 1;
+        int regionMaxY = 1;
+
+        int gridThird = gridSize / 3;
+
+        switch (row)
+        {
+            case 1: regionMinX = 1;
+                    regionMaxX = gridThird;
+                break;
+            case 2: regionMinX = gridThird;
+                    regionMaxX = gridSize - gridThird;
+                break;
+            case 3: regionMinX = gridSize - gridThird;
+                    regionMaxX = gridSize;
+                break;
+        }
+        switch (column)
+        {
+            case 1:
+                regionMinY = 1;
+                regionMaxY = gridThird;
+                break;
+            case 2:
+                regionMinY = gridThird;
+                regionMaxY = gridSize - gridThird;
+                break;
+            case 3:
+                regionMinY = gridSize - gridThird;
+                regionMaxY = gridSize;
+                break;
+        }
+        int[,] boundries = {{ regionMinX, regionMaxX},{ regionMinY, regionMaxY }};
+        return boundries;
+    }
+
+    //Make change to send back a specific coordinate within that range
 }
