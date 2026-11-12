@@ -45,8 +45,7 @@ public class CreateTile : MonoBehaviour
 
     void RenderMesh()
     {
-        Mesh mesh = new Mesh();
-
+        mesh = new Mesh();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
         mesh.normals = normals;
@@ -54,8 +53,15 @@ public class CreateTile : MonoBehaviour
         mesh.tangents = tangents;
         mesh.colors = colors;
 
-        GetComponent<MeshFilter>().mesh = mesh;
-        GetComponent<Renderer>().material.mainTexture = mainTexture;
+        Debug.Log("Vertices: " + vertices?.Length);
+        Debug.Log("Triangles: " + triangles?.Length);
+        Debug.Log("Normals: " + normals?.Length);
+        Debug.Log("UVs: " + uv?.Length);
+        Debug.Log("Tangents: " + tangents?.Length);
+        Debug.Log("Colors: " + colors?.Length);
+
+        meshFilter.mesh = mesh;
+        renderer.material.mainTexture = mainTexture;
         mesh.RecalculateBounds();
 
         //Debug.Log(vertices);
