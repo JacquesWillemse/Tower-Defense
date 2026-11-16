@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CollapseTest : MonoBehaviour
@@ -25,7 +26,6 @@ public class CollapseTest : MonoBehaviour
 
     //this list gets filled with all the possible tiles a cell can be as well as their rotated varients where relevent 
     public List<TileType> allPossibleTiles = new List<TileType>();
-    public List<TileType> POITiles = new List<TileType>();
 
     //determines the size of the grid, it will be a square of whatever value is selected
     public int gridSize;
@@ -48,6 +48,9 @@ public class CollapseTest : MonoBehaviour
     bool contradictionFound = false;
     bool generationComplete = false;
 
+    bool towerPlaced = false;
+    int towerRotation;
+
     public Queue<GridCell> collapseQueue = new Queue<GridCell>();
 
 
@@ -59,6 +62,7 @@ public class CollapseTest : MonoBehaviour
         //gives its initial rotation, what parent group it belongs to, the unique tile name, and then assigns the Tile Id's to every side to use in future
         terrainTile = PopulateTile(rotationNorth, TileParentGroup.Terrain, TileUnique.terrain, TERRAIN_EDGE, TERRAIN_EDGE, TERRAIN_EDGE, TERRAIN_EDGE);
         IntersectionRoad = PopulateTile(rotationNorth, TileParentGroup.Road, TileUnique.roadIntersection, ROAD_EDGE, TERRAIN_EDGE, ROAD_EDGE, ROAD_EDGE);
+        Tower = PopulateTile(rotationNorth, TileParentGroup.Road, TileUnique.tower, ROAD_EDGE, ROAD_EDGE, ROAD_EDGE, ROAD_EDGE);
 
         for (int i = 0; i < 4; i++)
         {
@@ -77,7 +81,7 @@ public class CollapseTest : MonoBehaviour
                     Tower = PopulateTile(rotationNorth, TileParentGroup.Tower, TileUnique.tower, ROAD_EDGE, TERRAIN_EDGE, ROAD_EDGE, ROAD_EDGE);
                     OldTower = Tower;
 
-                    Crater = PopulateTile(rotationNorth, TileParentGroup.Crater, TileUnique.crater, TERRAIN_EDGE, ROAD_EDGE, TERRAIN_EDGE, TERRAIN_EDGE);
+                    Crater = PopulateTile(rotationNorth, TileParentGroup.Road, TileUnique.crater, TERRAIN_EDGE, ROAD_EDGE, TERRAIN_EDGE, TERRAIN_EDGE);
                     OldCrater = Crater;
                     break;
                 case 1:
@@ -100,15 +104,15 @@ public class CollapseTest : MonoBehaviour
 
                     break;
             }
-            if(i < 2)
+            if (i < 2)
             {
                 //tiles that share 2 ID's where the same ID is opposite each other doesnt have to be added twice as they can be rotated
                 //for the opposite axis
                 allPossibleTiles.Add(verticalRoad);
             }
             allPossibleTiles.Add(CornerRoad);
-            POITiles.Add(Crater);
-            POITiles.Add(Tower);
+            allPossibleTiles.Add(Crater);
+            allPossibleTiles.Add(Tower);
         }
         //adds the tile to the list of possible tiles
         allPossibleTiles.Add(terrainTile);
@@ -128,6 +132,16 @@ public class CollapseTest : MonoBehaviour
                 grid[x, y].possibleTiles = new List<TileType>(allPossibleTiles);
             }
         }
+
+
+        //PlacePOIs();
+        CalculateEndPointLocation(5, 5, Direction.north, CraterID.CraterOne);
+        CalculateEndPointLocation(5, 5, Direction.north, CraterID.CraterTwo);
+        CalculateEndPointLocation(5, 5, Direction.north, CraterID.CraterThree);
+
+
+
+
 
         while (!generationComplete && !contradictionFound)
         {
@@ -309,13 +323,14 @@ public class CollapseTest : MonoBehaviour
             waveFunctionCollapse.collapseTest = this;
             waveFunctionCollapse.GenerateMesh();
         }
+
     }
 
-        // Update is called once per frame
-        void Update()
-        {
+    // Update is called once per frame
+    void Update()
+    {
 
-        }
+    }
 
     //Hardcoded values to populate a type of tile, this will have to be hand fed for each created tile mesh to ensure it lines up
     public TileType PopulateTile(int rotation, TileParentGroup tileParentGroupTerrain, TileUnique uniqueTileTerrain, int north, int east, int south, int west)
@@ -358,7 +373,7 @@ public class CollapseTest : MonoBehaviour
                 newWest = oldWest;
                 break;
             case 90:
-                newNorth =oldWest;
+                newNorth = oldWest;
                 newEast = oldNorth;
                 newSouth = oldEast;
                 newWest = oldSouth;
@@ -386,7 +401,7 @@ public class CollapseTest : MonoBehaviour
         newRotations.west = newWest;
         newRotations.tileGroup = tileType.tileGroup;
         newRotations.tileUnique = tileType.tileUnique;
-        newRotations.rotation = rotation;   
+        newRotations.rotation = rotation;
 
         return (newRotations);
     }
@@ -424,89 +439,221 @@ public class CollapseTest : MonoBehaviour
                 }
             }
         }
-        if(lowestNumPos == int.MaxValue)
+        if (lowestNumPos == int.MaxValue)
         {
             return false;
-        }else
+        }
+        else
         {
             return true;
         }
     }
 
-    public void PlacePOIs()
+
+
+    public void FindPOILocation(int row, int column)
     {
         //x,y coordinates for POI 
         int[] POECoordinates = new int[2];
+
         //gets the size of a 3rd of the grid
-        int gridThrird = gridSize/3;
+        int gridThrird = gridSize / 3;
 
-        int TowerRotationVal = UnityEngine.Random.Range(1, 5);
-
-        POECoordinates[0] = UnityEngine.Random.Range(gridThrird, gridSize - gridThrird);
-        POECoordinates[1] = UnityEngine.Random.Range(gridThrird, gridSize - gridThrird);
-
-
-        switch (TowerRotationVal)
+        if (row == 2 && column == 2)
         {
-            case 1:
-                Tower = ReCalculateRotation(OldTower, rotationSouth);
+            int TowerRotationVal = UnityEngine.Random.Range(1, 5);
+
+            POECoordinates[0] = UnityEngine.Random.Range(gridThrird, gridSize - gridThrird);
+            POECoordinates[1] = UnityEngine.Random.Range(gridThrird, gridSize - gridThrird);
+
+
+            switch (TowerRotationVal)
+            {
+                case 1: //0
+                    Tower = ReCalculateRotation(OldTower, rotationNorth);
+                    break;
+                case 2: // 90
+                    Tower = ReCalculateRotation(OldTower, rotationEast);
+                    break;
+                case 3: // 180
+                    Tower = ReCalculateRotation(OldTower, rotationSouth);
+                    break;
+                case 4: // 270
+                    Tower = ReCalculateRotation(OldTower, rotationWest);
+                    break;
+                default:
+                    break;
+            }
+            grid[POECoordinates[0], POECoordinates[1]].possibleTiles.Clear();
+            grid[POECoordinates[0], POECoordinates[1]].possibleTiles.Add(Tower);
+            grid[POECoordinates[0], POECoordinates[1]].collapsed = true;
+            towerPlaced = true;
+            towerRotation = TowerRotationVal;
+        }
+        else
+        {
+            switch (row)
+            {
+                case 1:
+                    POECoordinates[0] = UnityEngine.Random.Range(1, gridThrird);
+                    break;
+                case 2:
+                    POECoordinates[0] = UnityEngine.Random.Range(gridThrird + 1, gridSize - gridThrird);
+                    break;
+                case 3:
+                    POECoordinates[0] = UnityEngine.Random.Range(gridSize - gridThrird + 1, gridSize);
+                    break;
+                default:
+                    break;
+            }
+            switch (column)
+            {
+                case 1:
+                    POECoordinates[1] = UnityEngine.Random.Range(1, gridThrird);
+                    break;
+                case 2:
+                    POECoordinates[1] = UnityEngine.Random.Range(gridThrird + 1, gridSize - gridThrird);
+                    break;
+                case 3:
+                    POECoordinates[1] = UnityEngine.Random.Range(gridSize - gridThrird + 1, gridSize);
+                    break;
+                default:
+                    break;
+            }
+            grid[POECoordinates[0], POECoordinates[1]].possibleTiles.Clear();
+            grid[POECoordinates[0], POECoordinates[1]].possibleTiles.Add(Crater);
+            grid[POECoordinates[0], POECoordinates[1]].collapsed = true;
+        }
+    }
+
+    public void PlacePOIs()
+    {
+        int regionX = 2; // column
+        int regionY = 2; // row
+
+        if (!towerPlaced)
+        {
+            FindPOILocation(regionY, regionX);
+        }
+        switch (towerRotation)
+        {
+            case 1: //0
+                //crater One
+                FindPOILocation(3, 3);
+
+                //crater Two
+                FindPOILocation(1, 3);
+
+                //crater Three
+                FindPOILocation(2, 1);
                 break;
-            case 2:
-                Tower = ReCalculateRotation(OldTower, rotationEast);
+            case 2: // 90
+                //crater One
+                FindPOILocation(3, 3);
+
+                //crater Two
+                FindPOILocation(3, 1);
+
+                //Crater Three
+                FindPOILocation(1, 2);
                 break;
-            case 3:
-                Tower = ReCalculateRotation(OldTower, rotationNorth);
+            case 3: // 180
+                //crater One
+                FindPOILocation(3, 1);
+
+                //crater Two
+                FindPOILocation(1, 3);
+
+                //Crater Three
+                FindPOILocation(2, 1);
                 break;
-            case 4:
-                Tower = ReCalculateRotation(OldTower, rotationNorth);
+            case 4: //270
+                //crater One
+                FindPOILocation(1, 1);
+
+                //crater Two
+                FindPOILocation(1, 3);
+
+                //Crater Three
+                FindPOILocation(3, 2);
                 break;
             default:
                 break;
         }
-        grid[POECoordinates[0], POECoordinates[1]].possibleTiles.Clear();
-        grid[POECoordinates[0], POECoordinates[1]].possibleTiles.Add(Tower);
-        grid[POECoordinates[0], POECoordinates[1]].collapsed = true;
     }
 
-    public int[,] CalculateRegionBoundries( int row, int column)
+    public void CalculateEndPointLocation(int x, int y, Direction towerDirection, CraterID craterId)
     {
-        int regionMinX = 1;
-        int regionMaxX = 1;
-        int regionMinY = 1;
-        int regionMaxY = 1;
-
-        int gridThird = gridSize / 3;
-
-        switch (row)
+        Vector2Int towerConnectionLocation = new Vector2Int(0, 0);
+        switch (towerDirection)
         {
-            case 1: regionMinX = 1;
-                    regionMaxX = gridThird;
+            case Direction.north: //0
+                switch (craterId)
+                {
+                    case CraterID.CraterOne:
+                        towerConnectionLocation = new Vector2Int(x - 1, y);
+                        break;
+                    case CraterID.CraterTwo:
+                        towerConnectionLocation = new Vector2Int(x + 1, y);
+                        break;
+                    case CraterID.CraterThree:
+                        towerConnectionLocation = new Vector2Int(x, y + 1);
+                        break;
+                    default:
+                        break;
+                }
                 break;
-            case 2: regionMinX = gridThird;
-                    regionMaxX = gridSize - gridThird;
+            case Direction.east: // 90
+                switch (craterId)
+                {
+                    case CraterID.CraterOne:
+                        towerConnectionLocation = new Vector2Int(x, y + 1);
+                        break;
+                    case CraterID.CraterTwo:
+                        towerConnectionLocation = new Vector2Int(x, y - 1);
+                        break;
+                    case CraterID.CraterThree:
+                        towerConnectionLocation = new Vector2Int(x - 1, y);
+                        break;
+                    default:
+                        break;
+                }
                 break;
-            case 3: regionMinX = gridSize - gridThird;
-                    regionMaxX = gridSize;
+            case Direction.south: // 180
+                switch (craterId)
+                {
+                    case CraterID.CraterOne:
+                        towerConnectionLocation = new Vector2Int(x + 1, y);
+                        break;
+                    case CraterID.CraterTwo:
+                        towerConnectionLocation = new Vector2Int(x - 1, y);
+                        break;
+                    case CraterID.CraterThree:
+                        towerConnectionLocation = new Vector2Int(x, y - 1);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case Direction.west: //270
+                switch (craterId)
+                {
+                    case CraterID.CraterOne:
+                        towerConnectionLocation = new Vector2Int(x, y + 1);
+                        break;
+                    case CraterID.CraterTwo:
+                        towerConnectionLocation = new Vector2Int(x, y - 1);
+                        break;
+                    case CraterID.CraterThree:
+                        towerConnectionLocation = new Vector2Int(x + 1, y);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            default:
                 break;
         }
-        switch (column)
-        {
-            case 1:
-                regionMinY = 1;
-                regionMaxY = gridThird;
-                break;
-            case 2:
-                regionMinY = gridThird;
-                regionMaxY = gridSize - gridThird;
-                break;
-            case 3:
-                regionMinY = gridSize - gridThird;
-                regionMaxY = gridSize;
-                break;
-        }
-        int[,] boundries = {{ regionMinX, regionMaxX},{ regionMinY, regionMaxY }};
-        return boundries;
+        Debug.Log(craterId + " connection location is " + towerConnectionLocation + "if the tower location is " + x + " " + y);
     }
-
-    //Make change to send back a specific coordinate within that range
 }
